@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>AI-ОСНОВА для учеников</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Макет: журнальный учебник ТАТЕВ — слева оглавление с прогрессом, справа урок из раскрывающихся блоков,
+   промпты на графите, кнопки на официальные сайты. Сознательно один светлый образ — фирменная бумага. */
+:root{
+  --milk:#F4EEE9; --paper:#FBF8F5; --band:#E9DFD6; --ink:#2E2A28; --muted:#6B625C;
+  --line:rgba(46,42,40,.16); --terra:#C56245; --terra-deep:#A64D34; --terra-soft:rgba(197,98,69,.10); --terra-light:#EBA88C;
+  --blue:#7FAEC6; --blue-soft:rgba(127,174,198,.22); --code-fg:#F4EEE9; --white:#FFFDFB;
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --sans:"Manrope","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--milk);color:var(--ink);font:400 17px/1.6 var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 70px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--milk)}
+a{color:var(--ink);text-decoration-color:var(--terra);text-decoration-thickness:2px;text-underline-offset:3px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--terra);outline-offset:3px}
+p{margin:0;text-wrap:pretty}
+h1,h2,h3{text-wrap:balance;margin:0}
+.wrap{max-width:1180px;margin:0 auto}
+
+.run{display:flex;flex-wrap:wrap;gap:6px 24px;padding-block:22px 14px;border-bottom:1px solid var(--line);font-size:.75rem}
+.run strong{letter-spacing:.12em;text-transform:uppercase}
+.run span{color:var(--muted)}
+
+/* обложка модуля */
+.cover{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:28px 56px;align-items:end;padding-block:clamp(28px,6vw,64px) 34px;border-bottom:1px solid var(--line)}
+.rubrics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.rubric{padding:6px 12px;font:800 .72rem/1 var(--sans);letter-spacing:.16em;text-transform:uppercase}
+.rubric.t{background:var(--terra);color:var(--milk)}
+.rubric.b{background:var(--blue);color:var(--ink)}
+.cover h1{font:600 clamp(2.8rem,7vw,5rem)/1 var(--serif);letter-spacing:-.01em;margin-bottom:16px}
+.cover h1 em,.lh h2 em{font-style:italic;color:var(--terra)}
+.lede{font-size:1.15rem;line-height:1.5;max-width:36em}
+.meter{display:grid;gap:10px;padding:20px 22px;background:var(--white);border-top:2px solid var(--ink)}
+.meter b{font:600 2.6rem/1 var(--serif);color:var(--terra);font-variant-numeric:lining-nums}
+.meter span{font-size:.85rem;color:var(--muted)}
+.mbar{height:8px;background:var(--band);overflow:hidden}
+.mbar i{display:block;height:100%;width:0;background:var(--terra);transition:width .8s cubic-bezier(.22,1,.36,1)}
+.dates{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem}
+.dates b{font:inherit;font-weight:800;color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:250px minmax(0,1fr);gap:44px;align-items:start;margin-top:30px}
+.grid>*{min-width:0}
+
+/* оглавление */
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column}
+nav.toc .sep{font:800 .66rem/1.3 var(--sans);text-transform:uppercase;letter-spacing:.16em;color:var(--muted);padding:16px 0 6px}
+nav.toc .sep:first-child{padding-top:0}
+nav.toc button{display:grid;grid-template-columns:46px 1fr 20px;gap:6px;align-items:baseline;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:11px 0}
+nav.toc .no{font:800 1.05rem/1 var(--sans);color:var(--terra);font-variant-numeric:tabular-nums}
+nav.toc .nm{font-size:.9rem;font-weight:600;line-height:1.3}
+nav.toc .ok{width:16px;height:16px;border:1.5px solid var(--line);align-self:center;display:grid;place-content:center}
+nav.toc .ok.on{background:var(--terra);border-color:var(--terra)}
+nav.toc .ok.on::after{content:"";width:8px;height:5px;border:solid var(--milk);border-width:0 0 2px 2px;transform:rotate(-45deg) translate(1px,-1px)}
+nav.toc button:hover .nm{color:var(--terra)}
+nav.toc button[aria-current="true"] .nm{color:var(--terra);font-weight:800}
+nav.toc button[aria-current="true"]{box-shadow:inset 3px 0 0 var(--terra);padding-left:10px}
+
+/* урок */
+main{min-width:0}
+.lh{display:grid;gap:14px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.lh h2{font:600 clamp(2.2rem,5vw,3.6rem)/1.02 var(--serif)}
+.can{background:var(--blue-soft);padding:14px 18px;font-size:1rem;max-width:44em}
+.can b{font-weight:800}
+.need{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.85rem;color:var(--muted)}
+.chip{font:600 .78rem var(--mono);background:var(--band);color:var(--ink);padding:3px 9px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{border:1px solid var(--ink);background:transparent;padding:8px 14px;font:700 .82rem var(--sans);min-height:38px}
+.tbtn:hover{background:var(--band)}
+
+/* блоки урока */
+.blocks{display:grid;margin-top:6px}
+.blk{border-bottom:1px solid var(--line);animation:rise .6s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes rise{from{transform:translateY(14px)}to{transform:none}}
+.bh{width:100%;display:grid;grid-template-columns:76px minmax(0,1fr) 32px;gap:14px;align-items:center;border:0;background:none;text-align:left;padding:22px 0}
+.bh .bn{font:800 2.1rem/1 var(--sans);color:var(--terra);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.bh h3{font:600 clamp(1.45rem,2.6vw,1.9rem)/1.15 var(--serif)}
+.bh small{display:block;font:500 .85rem/1.4 var(--sans);color:var(--muted);margin-top:4px}
+.bh .pm{width:30px;height:30px;border:1.5px solid var(--ink);position:relative;transition:background .2s,transform .3s}
+.bh .pm::before,.bh .pm::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:2px;background:var(--ink);transform:translate(-50%,-50%)}
+.bh .pm::after{transform:translate(-50%,-50%) rotate(90deg);transition:transform .3s}
+.blk.open .pm{background:var(--terra);border-color:var(--terra);transform:rotate(180deg)}
+.blk.open .pm::before,.blk.open .pm::after{background:var(--milk)}
+.blk.open .pm::after{transform:translate(-50%,-50%) rotate(0)}
+.bh:hover h3{color:var(--terra)}
+.bb{display:grid;gap:16px;padding:0 0 28px 90px}
+.blk:not(.open) .bb{display:none}
+.blk.open .bb>*{animation:fadein .45s ease both}
+@keyframes fadein{from{transform:translateY(6px)}to{transform:none}}
+.bb p{max-width:66ch}
+.bb ul{margin:0;padding-left:0;list-style:none;display:grid;gap:8px;max-width:66ch}
+.bb ul li{position:relative;padding-left:22px}
+.bb ul li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;background:var(--terra)}
+ol.steps{list-style:none;counter-reset:f;margin:0;padding:0;max-width:70ch}
+ol.steps li{counter-increment:f;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+ol.steps li::before{content:counter(f,decimal-leading-zero);font:800 1rem/1.6 var(--sans);color:var(--terra)}
+.quote{font:italic 600 clamp(1.4rem,2.6vw,1.9rem)/1.25 var(--serif);border-left:3px solid var(--terra);padding-left:16px;max-width:30em}
+
+/* карточки сервисов */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}
+.card{background:var(--white);border-top:2px solid var(--ink);padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;transition:transform .25s,box-shadow .25s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 26px -18px rgba(46,42,40,.45)}
+.card.t{border-top-color:var(--terra)} .card.b{border-top-color:var(--blue)}
+.card h4{margin:0;font:700 1.05rem/1.3 var(--sans)}
+.card p{font-size:.94rem;color:var(--muted)}
+.tag{align-self:flex-start;font:800 .66rem/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:5px 8px;background:var(--band)}
+.tag.ok{background:var(--blue);color:var(--ink)} .tag.vpn{background:var(--terra);color:var(--milk)}
+.go{margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font:800 .82rem var(--sans);text-decoration:none;border:1px solid var(--ink);padding:8px 12px;transition:background .2s,color .2s}
+.go::after{content:"↗";transition:transform .2s}
+.go:hover{background:var(--ink);color:var(--milk)}
+.go:hover::after{transform:translate(2px,-2px)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+
+/* вкладки */
+.tabs{border-top:1px solid var(--ink)}
+.tabs .tl{display:flex;flex-wrap:wrap;gap:0 4px;border-bottom:1px solid var(--line)}
+.tabs .tl button{border:0;background:none;padding:10px 12px 8px;font:800 .72rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:3px solid transparent;transition:color .2s,border-color .2s}
+.tabs .tl button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--terra)}
+.tabs .tp{padding:12px 0 0;display:grid;gap:8px}
+
+/* промпт */
+.prompt{background:var(--ink);color:var(--code-fg);max-width:780px}
+.prompt .ph{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-bottom:1px solid rgba(244,238,233,.14)}
+.prompt .ph span{font:800 .7rem/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;background:var(--blue);color:var(--ink)}
+.prompt .ph span.t{background:var(--terra);color:var(--milk)}
+.prompt .ph button{font:700 .82rem var(--sans);color:var(--code-fg);background:transparent;border:1px solid rgba(244,238,233,.45);padding:7px 14px;min-height:38px;transition:background .2s}
+.prompt .ph button:hover{background:rgba(244,238,233,.12)}
+.prompt .ph button.done{background:var(--terra);border-color:var(--terra)}
+.prompt pre{margin:0;padding:14px 16px 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:.86rem/1.6 var(--mono)}
+
+/* заметки */
+.note{background:var(--blue-soft);padding:14px 18px;max-width:72ch}
+.note.t{background:var(--terra-soft)}
+.note .nl{display:flex;align-items:center;gap:9px;font:800 .72rem/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.note .nl::before{content:"";width:9px;height:9px;background:var(--blue)}
+.note.t .nl::before{background:var(--terra)}
+
+/* показать ответ */
+.reveal{border:1px dashed var(--ink);padding:14px 18px;max-width:72ch}
+.reveal button{border:0;background:none;padding:0;font:800 .82rem var(--sans);letter-spacing:.06em;color:var(--terra);text-decoration:underline;text-underline-offset:3px}
+.reveal .ans{margin-top:10px;animation:fadein .4s ease both}
+
+/* таблицы */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem;min-width:520px}
+th{text-align:left;font:800 .7rem/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:10px 14px 10px 0;border-bottom:2px solid var(--ink)}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:700}
+.tree{font:.88rem/1.75 var(--mono);background:var(--white);border:1px solid var(--line);padding:12px 16px;overflow-x:auto;white-space:pre}
+.tree b{color:var(--terra)}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border-top:2px solid var(--ink)}
+.split>div{padding:12px 18px 14px 0;min-width:0}
+.split>div+div{border-left:1px solid var(--line);padding-left:18px}
+.split .sl{font:800 .72rem var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
+.split .sl.no{color:var(--muted)}
+.flowline{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.flowline span{background:var(--white);border:1.5px solid var(--ink);padding:8px 12px;font-weight:700;font-size:.92rem}
+.flowline span.acc{background:var(--terra);border-color:var(--terra);color:var(--milk)}
+.flowline i{font-style:normal;color:var(--terra);font-weight:800}
+
+/* задание */
+.hw{margin-top:26px;background:var(--white);border-top:2px solid var(--ink);padding:22px 24px 24px;display:grid;gap:14px}
+.hw h3{font:600 1.8rem/1.1 var(--serif)}
+.hw h3 em{color:var(--terra)}
+.check{list-style:none;padding:0;margin:0;display:grid}
+.check li{border-top:1px solid var(--line)}
+.check label{display:flex;gap:14px;align-items:flex-start;padding:11px 0;cursor:pointer}
+.check input{appearance:none;flex:none;width:22px;height:22px;border:1.5px solid var(--ink);margin:2px 0 0;display:grid;place-content:center;cursor:pointer;background:transparent;transition:background .2s}
+.check input:checked{background:var(--terra);border-color:var(--terra)}
+.check input:checked::after{content:"";width:10px;height:6px;border:solid var(--milk);border-width:0 0 2.5px 2.5px;transform:rotate(-45deg) translate(1px,-1px)}
+.check input:checked+span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--terra)}
+.donebox{border-left:3px solid var(--terra);padding-left:14px}
+.donebox b{color:var(--terra)}
+.finish{justify-self:start;display:inline-flex;align-items:center;gap:10px;border:0;background:var(--terra);color:var(--milk);padding:12px 18px;font:800 .9rem var(--sans);transition:transform .2s,background .2s}
+.finish:hover{transform:translateY(-2px)}
+.finish.on{background:var(--ink)}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:2px solid var(--ink);flex-wrap:wrap}
+.btn{border:1px solid var(--ink);background:transparent;padding:10px 16px;font:700 .88rem var(--sans);min-height:42px}
+.btn.primary{background:var(--terra);border-color:var(--terra);color:var(--milk)}
+.btn:hover{transform:translateY(-1px)}
+
+.final{margin-top:40px;padding:clamp(22px,4vw,40px);background:var(--white);border-top:2px solid var(--ink);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:22px;align-items:end}
+.sig{font:italic 600 2rem/1.1 var(--serif);color:var(--terra)}
+.final p{color:var(--muted);font-size:.95rem}
+.final img{display:block;width:min(100%,220px);height:auto;justify-self:end}
+
+@media (max-width:960px){
+  .cover,.final{grid-template-columns:1fr}
+  .final img{justify-self:start}
+  .grid{grid-template-columns:1fr;gap:18px}
+  nav.toc{position:static;flex-direction:row;overflow-x:auto;gap:14px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  nav.toc .sep{display:none}
+  nav.toc button{min-width:200px;border-top:0;grid-template-columns:38px minmax(0,1fr) 18px}
+  nav.toc button[aria-current="true"]{box-shadow:inset 0 -3px 0 var(--terra);padding-left:0}
+  .bh{grid-template-columns:52px minmax(0,1fr) 32px}
+  .bb{padding-left:0}
+  .split{grid-template-columns:1fr}
+  .split>div+div{border-left:0;padding-left:0;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+
+<div class="wrap" lang="ru">
+  <div class="run"><strong>ТАТЕВ · AI Мастерская</strong><span>Курс «ИИ для бухгалтера» · материалы модуля 1</span></div>
+
+  <header class="cover">
+    <div>
+      <div class="rubrics"><span class="rubric t">Модуль 1</span><span class="rubric b">8 уроков · ~4 ч 20 мин</span></div>
+      <h1>AI-<em>ОСНОВА</em></h1>
+      <p class="lede">Настраиваем нейросети под свою работу, учимся ставить задачу и проверять ответ, готовим технику для всего курса. Здесь — всё к урокам: ссылки, запросы, задания.</p>
+    </div>
+    <div class="meter" aria-live="polite">
+      <b id="mCount">0 из 8</b><span>уроков отмечено пройденными</span>
+      <div class="mbar"><i id="mBar"></i></div>
+      <div class="dates"><span><b>до Пн 23.11</b> — задания и чек-лист</span><span><b>Пт 27.11</b> — встреча и разбор</span></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <nav class="toc" id="toc" aria-label="Уроки модуля"></nav>
+    <main id="main"></main>
+  </div>
+
+  <section class="final">
+    <div><p class="sig">Татев Багрян</p><p>Налоговый консультант, эксперт по ИИ и автоматизации бухгалтерского бизнеса. Видео уроков — на платформе курса, здесь — материалы к ним.</p></div>
+    <img src="logo.png" alt="Логотип ТАТЕВ, бухгалтерское агентство" width="600" height="399">
+  </section>
+</div>
+
+<script>
+const P = {
+'1.1':`Ты — [роль: налоговый консультант / помощник главного бухгалтера / кадровик].
+Контекст: [кто клиент, режим налогообложения, период, что уже известно].
+Задача: [что нужно сделать].
+Формат: [письмо / таблица / план по шагам / заключение].
+Сошлись на конкретные статьи НК РФ и письма ведомств. Отдельным списком отметь, что нужно проверить по первоисточнику. Если данных не хватает — сначала задай уточняющие вопросы.`,
+'1.2':`Замени в тексте ниже все персональные и идентифицирующие данные метками: ФИО → [ФИО_1], ИНН → [ИНН_1], счета → [СЧЁТ_1], телефоны, адреса, e-mail, паспортные данные. Сохрани смысл и цифры операций. В конце выдай таблицу соответствий отдельно — я сохраню её у себя и не буду загружать.
+[текст]`,
+'1.3':`Проверь свой предыдущий ответ:
+1. Какие утверждения основаны на конкретной норме? Укажи статью и редакцию.
+2. Какие утверждения — твои предположения или обобщения? Отметь их.
+3. Что в ответе может быть неверно для [режим / период / тип клиента]?
+Не исправляй молча — покажи, что изменилось и почему.`,
+'1.4':`Реши задачу и покажи ход рассуждения по шагам: [задача].
+В конце оцени, где ты не уверен и какие данные нужны для точного ответа.`,
+'1.5':`Составь инструкцию для проекта «[название, например: Кадровик]».
+Роль: [кто он]. Задачи: [3–5 задач]. Границы: что он не делает и когда передаёт вопрос человеку.
+Стиль ответов: [кратко / по шагам / с таблицей]. Всегда указывает источник и отмечает, что нужно проверить.
+Используй только загруженные в проект файлы: [список].`,
+'2.1':`Ниже переписка с клиентом и реестр полученных документов за [период].
+1. Составь список документов, которых не хватает для [закрытия месяца / отчётности].
+2. Напиши клиенту вежливое письмо с этим списком. Не придумывай сроки и факты, которых нет в переписке; где срок нужен — оставь [срок].
+3. Предложи порядок действий на моей стороне.
+[переписка] [реестр]`,
+'2.4':`У клиента [режим] с [дата] появляется обязанность [что именно — проверьте актуальную норму]. Это добавляет в работе: [операции]. Сейчас обслуживание стоит [сумма].
+1. Оцени, сколько часов в месяц добавится, по шагам.
+2. Посчитай надбавку при моей ставке [сумма] в час.
+3. Напиши письмо клиенту о новой цене с объяснением, без давления.`,
+'2.5':`Перепиши текст ниже простым человеческим языком: короткие предложения, без «в целях», «осуществляется», «в рамках». Смысл, сроки и цифры не меняй.
+[текст]`,
+'2.6':`Ниже расшифровка созвона с клиентом. Составь:
+1. Протокол: решения, задачи, ответственные, сроки (если срок не назван — «не указано»).
+2. Письмо клиенту по итогам — до 150 слов.
+Не добавляй договорённостей, которых не было.
+[расшифровка]`,
+'3.1':`Сравни две выгрузки: [таблица 1: что это] и [таблица 2: что это] за [период].
+1. Найди строки, которые есть только в одной таблице.
+2. Найди совпадающие строки с разными суммами.
+3. Сверь итоги.
+Выдай реестр расхождений: строка, сумма в 1, сумма во 2, разница, возможная причина. Отдельно отметь, где причина — твоё предположение, а не факт из данных.`,
+'3.2':`Ниже оборотно-сальдовая ведомость [по счёту] за [период] (обезличена).
+Найди: нетипичные сальдо, отрицательные остатки там, где их быть не должно, крупные обороты без пары. Составь реестр вопросов для ручной проверки. Не исправляй учёт — только вопросы.`,
+'3.3':`Из приложенного скана извлеки таблицу: [какие колонки]. Сохрани суммы как в документе. Отметь ячейки, которые прочитаны неуверенно, — я сверю их с оригиналом.`,
+'4.1':`Ты — налоговый консультант. Ситуация: [факты], период: [период], режим: [режим].
+Подготовь черновик заключения:
+1. Факты.
+2. Применимые нормы — статья, пункт, редакция.
+3. Позиция Минфина и ФНС — номер и дата письма.
+4. Судебная практика, если есть.
+5. Вывод и его ограничения.
+Отдельно отметь всё, что нужно проверить по первоисточнику.`,
+'4.2':`Моя позиция: [позиция]. Выступи оппонентом: найди слабые места, аргументы налогового органа и риски. Затем — аргументы в мою пользу. В конце: что нужно подтвердить документами.`,
+'4.4':`Клиент: [вид деятельности, выручка, расходы, сотрудники, регион]. Сравни [режимы] на [год].
+Таблица: налоги, взносы, ограничения, нагрузка на учёт. Покажи расчёт по шагам. Ставки и лимиты отметь «проверить на дату расчёта».`
+};
+const L = {
+ chatgpt:{t:'chatgpt.com',u:'https://chatgpt.com'}, claude:{t:'claude.ai',u:'https://claude.ai'},
+ giga:{t:'giga.chat',u:'https://giga.chat'}, deepseek:{t:'chat.deepseek.com',u:'https://chat.deepseek.com'},
+ sber:{t:'developers.sber.ru',u:'https://developers.sber.ru'}, github:{t:'github.com',u:'https://github.com'},
+ cons:{t:'consultant.ru',u:'https://www.consultant.ru'}, garant:{t:'garant.ru',u:'https://www.garant.ru'},
+ sheets:{t:'Google Таблицы',u:'https://sheets.google.com'},
+ pravo:{t:'publication.pravo.gov.ru',u:'http://publication.pravo.gov.ru'}, fns:{t:'nalog.gov.ru',u:'https://www.nalog.gov.ru'}, buzz:{t:'Скачать Buzz',u:'https://github.com/chidiwilliams/buzz/releases'}, bukvitsa:{t:'Открыть Буквицу в Telegram',u:'https://t.me/bykvitsa'},
+ chatgptApp:{t:'Скачать ChatGPT',u:'https://openai.com/chatgpt/download/'}, claudeApp:{t:'Скачать Claude',u:'https://claude.ai/download'},
+ gigaApp:{t:'Приложение — на giga.chat',u:'https://giga.chat'}, deepseekApp:{t:'Приложение — на deepseek.com',u:'https://www.deepseek.com'}
+};
+
+/* типы блоков: p, ul, steps, cards, tabs, prompt, pk (запрос из библиотеки), note, warn, quote, table, reveal, links, split, tree, flow */
+const LESSONS = [
+{id:'l1',no:'1.1',block:'Как работать с нейросетью',title:'Старт и безопасность',
+ can:'выбрать сервис под задачу, зарегистрироваться на официальных сайтах и понимать, что нельзя загружать в нейросеть.',
+ need:['10 минут на регистрацию'],
+ blocks:[
+ {h:'Четыре нейросети для бухгалтера',s:'Чем отличаются и где нужен VPN',c:[
+  {cards:[
+   {h:'ChatGPT',tag:'vpn',tg:'VPN + зарубежная карта',p:'Сильный универсал: тексты, таблицы, голос, картинки.',go:'chatgpt'},
+   {h:'Claude',tag:'vpn',tg:'VPN + зарубежная карта',p:'Лучше всех пишет тексты, держит длинные документы, есть проекты и Skills.',go:'claude'},
+   {h:'GigaChat',tag:'ok',tg:'Без VPN',p:'Российский, вход через Сбер ID. Станет мозгом бота в модуле 5.',go:'giga',k:'b'},
+   {h:'DeepSeek',tag:'ok',tg:'Без VPN',p:'Бесплатный, хорошо рассуждает. Серверы в Китае — данные клиентов не загружаем.',go:'deepseek',k:'t'}]},
+  {note:'Четыре подписки не нужны. Для старта хватит одного-двух сервисов и бесплатных версий.'}]},
+ {h:'Эксперимент: один вопрос — четыре ответа',s:'Сравните, как отвечают разные сервисы',c:[
+  {prompt:{l:'Вопрос во все сервисы',t:'Мы ООО на УСН «доходы минус расходы». Можно ли учесть в расходах оплату курса повышения квалификации штатного сотрудника? Ответь коротко и укажи статью НК РФ.'}},
+  {steps:['<b>Суть</b> — можно или нельзя и при каких условиях','<b>Ссылка</b> — какая статья и какой пункт','<b>Тон</b> — насколько уверенно звучит ответ, даже если он неверный']},
+  {reveal:{q:'Показать правильный ориентир',a:'Подпункт 33 пункта 1 статьи 346.16 НК РФ: расходы на подготовку и переподготовку кадров — в порядке, установленном пунктом 3 статьи 264 НК РФ. Редакцию проверяйте на свою дату.'}}]},
+ {h:'Регистрация: только официальные сайты',s:'Адреса, способы входа и три совета',c:[
+  {table:{h:['Сервис','Официальный сайт','Вход','VPN и оплата'],r:[['ChatGPT','@chatgpt','почта, Google, Apple','нужен VPN · зарубежная карта'],['Claude','@claude','почта или Google + телефон','нужен VPN · зарубежная карта'],['GigaChat','@giga','Сбер ID','без VPN · бесплатно или рубли'],['DeepSeek','@deepseek','почта или Google','без VPN · бесплатно']]}},
+  {warn:'«ChatGPT на русском» в Telegram и сайты-клоны — посредники. Всё, что вы туда пишете и загружаете, получают они. Адрес набирайте сами, не ищите через поиск.'},
+  {ul:['<b>Одна почта</b> для всех сервисов курса — ей же зарегистрируетесь на GitHub в модуле 2','<b>Пароли</b> — в менеджер паролей, не в заметку на рабочем столе','<b>Ничего не покупайте сразу</b> — на эту неделю хватит бесплатных версий']},
+  {note:'ChatGPT и Claude могут не принимать российские номера телефона. Если упёрлись в это — напишите в чат потока.'}]},
+ {h:'Скачайте приложения',s:'Веб-версия и приложение для компьютера — ссылки',c:[
+  {table:{h:['Сервис','Веб-версия (браузер)','Приложение (компьютер и телефон)'],r:[['ChatGPT','@chatgpt','@chatgptApp'],['Claude','@claude','@claudeApp'],['GigaChat','@giga','@gigaApp'],['DeepSeek','@deepseek','@deepseekApp']]}},
+  {steps:['Зарегистрируйтесь в веб-версии (блок 3)','Скачайте приложение для компьютера ChatGPT и/или Claude по ссылке и войдите тем же аккаунтом','По желанию — приложение на телефон из официального магазина','Проверьте: чат, начатый в браузере, виден в приложении']},
+  {note:'Приложение для компьютера понадобится в технической части и в модуле 2: там работают Claude Code и Codex. GigaChat и DeepSeek работают в браузере и на телефоне.'},
+  {warn:'Скачивайте только по ссылкам с официальных сайтов. Приложения с похожими названиями в магазинах — часто посредники.'}]},
+ {h:'Браузер, приложение или телефон',s:'В чём разница и что такое Claude Code и Codex',c:[
+  {cards:[{h:'Браузер',p:'Сайт сервиса. Ничего не нужно ставить, работает на любом компьютере.'},{h:'Приложение на компьютере',p:'То же самое, но удобнее: своё окно, горячие клавиши, файлы легко перетаскивать.'},{h:'Телефон',p:'Для голоса и фото: сфотографировать документ, задать вопрос в дороге.'}]},
+  {p:'Аккаунт один, чаты общие: начали в браузере — продолжили в приложении. В курсе работаем на компьютере.'},
+  {note:'<b>Claude Code и Codex</b> — не чат, а агенты для программирования: вы ставите задачу словами, они сами создают файлы и программы на компьютере. Claude Code — у Claude, Codex — у ChatGPT. Работают по платной подписке. Это тема модуля 2.'}]},
+ {h:'Безопасность: три зоны данных',s:'Что можно, что после обезличивания, что никогда',c:[
+  {cards:[{h:'Можно',k:'b',p:'Общие вопросы по налогам, ваши тексты, шаблоны писем без имён.'},{h:'Только после ручного обезличивания',p:'Договоры, переписка с клиентом, выгрузки — и лучше не загружать вовсе.'},{h:'Нельзя никогда',k:'t',p:'Пароли, ключи, ЭЦП, паспорта, СНИЛС, реальные выписки с номерами счетов.'}]},
+  {quote:'Нейросети нужны факты и цифры, а не документы клиентов.'},{p:'Описывайте ситуацию своими словами, без названий и фамилий: «ООО на УСН оплатило обучение сотрудника, 48 000 ₽». Этого почти всегда достаточно.'},{p:'<b>Если без документа никак</b> — обезличьте его вручную, до загрузки:'},
+  {steps:['Откройте документ в Word','<b>Найти и заменить</b> (Ctrl+H, на Mac — Cmd+Shift+H): фамилию → «Сотрудник 1», название → «Клиент 1»','Повторите для всех ФИО, паспортов, ИНН физлиц, адресов, телефонов и счетов','Таблицу соответствий сохраните у себя, в нейросеть её не загружайте']},
+  {warn:'Не просите нейросеть «обезличить документ» — отправив его, вы его уже загрузили.'}]},
+ {h:'А если сервис российский?',s:'Почему паспорт нельзя загрузить даже в GigaChat',c:[
+  {split:[{l:'Плюс GigaChat',ul:['Данные хранятся в России','Требование 152-ФЗ о хранении выполнено']},{l:'Но',no:1,ul:['Загрузить паспорт сотрудника клиента — значит передать данные третьей компании','Для этого нужно согласие человека или договор на обработку']}]},
+  {quote:'ИИ пишет документ, я вписываю человека.'},
+  {prompt:{l:'Пример: трудовой договор без паспорта',t:'Составь трудовой договор с бухгалтером: ООО на УСН, полный день, оклад [сумма], испытательный срок 3 месяца, удалённая работа 2 дня в неделю. Персональные данные работника оставь полями: [ФИО], [паспорт], [адрес регистрации], [ИНН], [СНИЛС].'}},
+  {p:'Данные вписываете сами в Word. Если договоров много — шаблон в 1С:ЗУП или «Слияние» в Word с таблицей сотрудников.'}]},
+ {h:'Где ИИ ошибается',s:'Три признака, что ответ надо проверить',c:[
+  {cards:[{h:'Письмо без даты',k:'t',p:'Номер письма Минфина или ФНС, который не находится.'},{h:'«Сложившаяся практика»',k:'t',p:'Ссылка на суды без конкретного дела.'},{h:'Слишком гладко',k:'t',p:'Ни одного «но» и ни одного условия. В налогах условия есть почти всегда.'}]},
+  {quote:'Каждую ссылку проверяем. Как — в уроке 1.3.'}]}
+ ],
+ hw:{t:'Регистрация и <em>сравнение</em>',tasks:['Зарегистрироваться в 2–3 сервисах на официальных сайтах (GigaChat обязательно)','Скачать приложение для компьютера ChatGPT и/или Claude и войти в него','Задать всем один свой рабочий вопрос','Сравнить ответы: суть, ссылка, тон'],done:'есть скриншот сравнения и короткий вывод: какой сервис вам для чего подходит.'}},
+
+{id:'l2',no:'1.2',block:'Как работать с нейросетью',title:'Персонализация, память, проекты',
+ can:'один раз настроить нейросеть под себя, создать помощника «Мой ИИ-бухгалтер» с файлами и завести рабочую папку для курса.',
+ need:['Аккаунт из урока 1.1','2–3 своих обезличенных файла: прайс, регламент, образец письма'],
+ blocks:[
+ {h:'С чего начать',s:'Кому какой шаг можно пропустить',c:[
+  {cards:[{h:'Всё уже настроено',p:'Персонализация есть и нравится — переходите сразу к блоку «Проект».'},{h:'Проект уже есть',k:'b',p:'Всё равно загляните в «Память» и «Рабочая папка» — пригодится дальше.'},{h:'Впервые',k:'t',p:'Идите по шагам спокойно: здесь только копируем и вставляем.'}]}]},
+ {h:'Четыре слоя настройки',s:'Что за что отвечает',c:[
+  {cards:[{h:'Персонализация',p:'Текст о вас. Пишете один раз, работает во всех чатах.'},{h:'Память',k:'b',p:'Нейросеть запоминает сама. Вы проверяете и чистите.'},{h:'Проект',k:'t',p:'Отдельное рабочее место: своя инструкция, файлы и чаты.'},{h:'Папка на компьютере',p:'Реальные файлы. Понадобится во втором модуле.'}]},
+  {warn:'Проект в нейросети и папка на компьютере — разные вещи. Сами они не синхронизируются: нужные файлы переносим в проект руками.'}]},
+ {h:'Персонализация через интервью',s:'Нейросеть сама расспросит вас и составит текст',c:[
+  {steps:['Новый чат → задайте вопрос «до» (ниже) и сохраните ответ','Откройте <b>новый обычный чат</b> — не настройки и не проект','Отправьте промпт-интервью и отвечайте на вопросы по одному, своими словами','Нейросеть выдаст итог в двух частях: «Что знать обо мне» и «Как отвечать». Правьте словами: «убери это», «добавь…»','Скопируйте <b>итоговый текст</b> и только теперь откройте настройки (пути — во вкладках ниже)','Новый чат → тот же вопрос → сравните два ответа']},
+  {prompt:{l:'Вопрос «до» и «после»',t:'Напиши клиенту напоминание: до 5 числа прислать документы за месяц.'}},
+  {prompt:{l:'Промпт-интервью для персонализации',t:`Помоги мне настроить персонализацию нейросети под мою работу в бухгалтерии.
+Проведи со мной интервью. Задавай вопросы строго по одному и жди моего ответа.
+Если ответ короткий или неясный — уточни. Выясни:
+— кто я: бухгалтер в штате, главный бухгалтер, бухгалтер на аутсорсе, руководитель агентства, ИП;
+— с кем работаю: ООО и ИП, режимы налогообложения (УСН, АУСН, ОСН, патент), отрасли, сколько клиентов;
+— в каких программах работаю: 1С, банк-клиент, Контур, СБИС, Excel и т. д.;
+— какие задачи хочу отдать ИИ: письма клиентам, налоговые вопросы, сверки, документы, таблицы, контент;
+— как мне удобнее получать ответы: коротко или подробно, списком, таблицей, по шагам;
+— каким тоном писать клиентам и коллегам, какие слова и обороты я не люблю;
+— что ИИ делать нельзя: придумывать нормы, сроки, суммы и номера документов, отвечать без ссылки на источник.
+После интервью составь готовый текст для настроек персонализации в двух частях:
+«Что знать обо мне» и «Как отвечать». Пиши коротко, без теории, не больше 1500 знаков в каждой части.
+Покажи итог и спроси, что поправить.`}},
+  {note:'Отвечайте подробно: режимы, отрасли, программы, любимые и нелюбимые формулировки. Можно голосом. Не знаете ответа — напишите «пока не знаю, пропусти».'},
+  {tabs:{ChatGPT:'<p>Имя внизу слева → <b>Настройки</b> → <b>Персонализация</b> → включите настройку → поле <b>«Пользовательские инструкции»</b>. Если полей два: в одно «Что знать обо мне», в другое «Как отвечать».</p>',Claude:'<p>Инициалы внизу слева → <b>Settings (Настройки)</b> → поле личных предпочтений (Instructions for Claude). Действует во всех чатах.</p>',GigaChat:'<p>Если постоянных настроек в вашей версии нет — сохраните текст в заметке и вставляйте первым сообщением в новый чат.</p>',DeepSeek:'<p>Постоянных инструкций нет: текст в заметке → первым сообщением в новый чат.</p>'}},
+  {warn:'В настройки вставляйте итоговый текст, а не сам промпт-интервью. Иначе нейросеть будет в каждом чате задавать вам вопросы.'},
+  {note:'Это схема, а не снимок экрана: названия кнопок в вашей версии могут немного отличаться.'},
+  {reveal:{q:'Что должно получиться',a:'Второе письмо — короче, живым языком, в вашем тоне и с обращением на «вы». Если разницы нет — проверьте, что персонализация включена и текст сохранён. Сам текст сохраните в папку «01-Обо мне» (см. ниже).'}}]},
+ {h:'Память',s:'Что полезно запомнить, а что удалить',c:[
+  {p:'Персонализацию пишете вы — она всегда одинаковая. Память нейросеть ведёт сама, и она меняется после каждого разговора. Поэтому главное — в персонализацию, а память проверяем.'},
+  {split:[{l:'Полезно',ul:['Какие у вас режимы и сколько клиентов','В каком виде вы любите ответы','Ваш прайс на услуги']},{l:'Не нужно — удаляем',no:1,ul:['Фамилии','Названия компаний клиентов','Суммы по конкретным клиентам']}]},
+  {tabs:{ChatGPT:'<p>Настройки → Персонализация → Память → «Управлять». Там же память можно выключить.</p>',Claude:'<p>Настройки → Память (если есть в вашем тарифе). У каждого проекта память своя.</p>',GigaChat:'<p>Проверьте, есть ли память в вашей версии.</p>',DeepSeek:'<p>Памяти между чатами нет: каждый чат с нуля.</p>'}}]},
+ {h:'Проект «Мой ИИ-бухгалтер»',s:'Помощник с готовой инструкцией и вашими файлами',c:[
+  {steps:['Создайте проект «Мой ИИ-бухгалтер», выберите значок и цвет','Откройте настройки проекта → поле «Инструкции» → вставьте инструкцию ниже → сохраните','Загрузите 2–3 актуальных <b>обезличенных</b> файла: прайс, регламент, образец письма','Новый чат внутри проекта → проверочная фраза (ниже)','Вопрос, ответ на который есть в файлах, — ответ должен быть со ссылкой на файл','Вопрос, ответа на который нет, — помощник должен сказать «в материалах этого нет»']},
+  {prompt:{l:'Инструкция проекта «Мой ИИ-бухгалтер»',t:`Ты мой персональный ИИ-помощник в бухгалтерской работе.
+Учитывай мою специализацию, клиентов и стиль из персонализации.
+Ты помогаешь мне:
+— писать письма и сообщения клиентам;
+— разбирать налоговые и кадровые вопросы со ссылкой на статью НК РФ или ТК РФ;
+— проверять документы, выписки и таблицы, находить расхождения;
+— готовить шаблоны документов с полями [ФИО], [ИНН], [сумма] — реальные данные я вписываю сама;
+— готовить посты и памятки для клиентов.
+Правила:
+— не придумывай нормы, сроки, суммы и номера писем; если не уверен — так и скажи и подскажи, где проверить;
+— персональные данные клиентов не запрашивай, работаем с обезличенными документами;
+— если информации недостаточно — сначала задай уточняющие вопросы;
+— если ответ взят из загруженного файла — укажи, из какого.
+Позже я загружу прайс, регламенты и образцы писем. Используй их в работе.`}},
+  {prompt:{l:'Проверка проекта',t:'Привет! Расскажи, чем ты будешь мне помогать в этом проекте и чего делать не будешь.'}},
+  {tabs:{ChatGPT:'<p>Боковое меню → «Новый проект» → название, значок, цвет. Наведите на проект → <b>•••</b> → «Настройки проекта» → «Инструкции».</p>',Claude:'<p>«Проекты» (claude.ai/projects) → «+ Новый проект» → название → «Задать инструкции проекта» → сохранить. Файлы — в знания проекта.</p>','GigaChat и DeepSeek':'<p>Проектов может не быть: инструкция в заметке, первым сообщением + файлы в чат. В каждом новом чате всё заново.</p>'}},
+  {note:'Помощник начал сочинять? Добавьте в инструкцию: «отвечай по загруженным файлам; если ответа нет — так и скажи».'},
+  {p:'Освоитесь — сделайте узких помощников: «Кадровик», «Налоговый консультант», «Письма клиентам». Инструкцию для них нейросеть составит по запросу 1.5:'},
+  {pk:'1.5'}]},
+ {h:'Рабочая папка на компьютере',s:'Одна задача — одна папка',c:[
+  {tree:'Рабочий стол\n└── <b>Курс_ИИ</b>\n    ├── 01-Обо мне           ← текст персонализации, инструкции проектов\n    ├── 02-Файлы помощника   ← прайс, регламенты, образцы писем\n    ├── 03-Обезличено        ← то, что уже можно загружать в ИИ\n    ├── 04-Шаблоны           ← удачные запросы и скиллы (урок 1.3)\n    └── 05-Результаты        ← готовые письма, таблицы, отчёты'},
+  {note:'Во втором модуле мы откроем эту папку в Claude Code или Codex — нейросеть будет работать прямо с вашими файлами. Программировать ничего не нужно.'}]},
+ {h:'Три частые ошибки',s:'Чего не делать',c:[
+  {cards:[{h:'Промпт в настройках',k:'t',p:'В настройки вставили промпт-интервью — нейросеть спрашивает в каждом чате. Нужен итоговый текст.'},{h:'Всё подряд',k:'t',p:'Пятьдесят файлов, половина устарела. Три актуальных лучше.'},{h:'Нет границ',k:'t',p:'Без «не придумывай сроки» и «если не знаешь — скажи» помощник уверенно сочиняет.'}]}]}
+ ],
+ hw:{t:'Свой первый <em>помощник</em>',tasks:['Пройти интервью и сохранить итоговый текст в настройках персонализации','Сравнить ответ на вопрос «до» и «после»','Проверить память и удалить лишнее','Создать проект «Мой ИИ-бухгалтер», вставить инструкцию, загрузить 2–3 обезличенных файла','Задать три вопроса: два по файлам и один, ответа на который нет — прислать скриншот третьего','Создать папку «Курс_ИИ» с пятью подпапками и сохранить в «01-Обо мне» текст персонализации'],done:'помощник учитывает вашу специфику — режим, клиенты, стиль — и честно говорит, когда не знает.'}},
+
+{id:'l3',no:'1.3',block:'Как работать с нейросетью',title:'Промптинг (ТЗ для ИИ), Skills и коннекторы',
+ can:'ставить задачу нейросети как ТЗ — без загрузки документов, разбирать большой вопрос ветками, сделать свой скилл и презентацию и безопасно подключить Google.',
+ need:['Проект «Мой ИИ-бухгалтер» из урока 1.2','КонсультантПлюс или Гарант','По желанию — учебный Google-аккаунт'],
+ blocks:[
+ {h:'ТЗ для нейросети',s:'Промптинг — это по сути ТЗ',c:[
+  {p:'Ставим задачу нейросети так же, как сотруднику. Всё нужное пишем в самом ТЗ своими словами — документы клиентов прикладывать не нужно.'},
+  {flow:['Вводные','Задача','Что на выходе','Тон','Чего не делать','Не хватает — спроси']},
+  {table:{h:['Пункт ТЗ','Что написать'],r:[['Вводные','Кто я, кто клиент, режим, период, цифры'],['Задача','Что сделать — одним предложением'],['Что на выходе','Результат по пунктам: таблица, письмо, варианты'],['Тон','На «вы», без канцелярита, коротко'],['Чего не делать','Не придумывать нормы, сроки, суммы'],['Не хватает — спроси','Последняя строчка любого ТЗ']]}},
+  {split:[{l:'Как пишут обычно',no:1,ul:['«Напиши клиенту письмо про повышение цены»','Нейросеть не знает клиента, цену и причину — и додумывает']},{l:'ТЗ',ul:['Вводные: клиент, сколько платит, что меняется','На выходе: темы, письмо, ответ на «дорого»','Даты не придумывать — оставить [дата]']}]},
+  {prompt:{l:'ТЗ: письмо о новой цене',t:`Вводные: я руководитель бухгалтерского агентства. Клиент — ООО на УСН «доходы минус расходы», торговля, 2 сотрудника, обслуживаем 3 года, сейчас платит 15 000 ₽ в месяц. С января у него добавляется новая обязанность — это плюс 4 часа нашей работы в месяц. Новая цена — 21 000 ₽.
+Задача: подготовить письмо клиенту о новой цене.
+На выходе:
+1. Три варианта темы письма.
+2. Письмо до 150 слов: что меняется, почему, новая цена, с какой даты.
+3. Короткий ответ, если клиент напишет «дорого».
+Тон: на «вы», спокойно, без оправданий и без давления, без канцелярита.
+Нельзя: придумывать нормы закона и даты, которых я не дала. Где нужна дата — оставь [дата].
+Если чего-то не хватает — сначала спроси.`}},
+  {prompt:{l:'ТЗ: налоговый вопрос',t:`Вводные: я налоговый консультант. Клиент — ООО на общей системе. В октябре 2026 года компания оплатила менеджеру по закупкам курс повышения квалификации — 48 000 ₽. Обучение проводит частная образовательная организация, договор заключён между компанией и этой организацией. Менеджер работает по трудовому договору.
+Задача: черновик ответа клиенту на четыре вопроса — можно ли учесть в расходах по налогу на прибыль, нужно ли удерживать НДФЛ, нужно ли начислять страховые взносы, какие документы собрать.
+На выходе: по каждому вопросу — вывод в 2–3 предложениях, норма (статья, пункт), условия, при которых вывод верен. В конце — что проверить по первоисточнику.
+Нельзя: ссылаться на письма и суды без номера и даты.
+Если не уверен — так и скажи.`}},
+  {prompt:{l:'ТЗ: памятка для клиентов',t:`Вводные: я веду бухгалтерию ИП и небольших ООО. Клиенты часто присылают документы в последний день и в разном виде.
+Задача: памятка для клиентов «Как и когда присылать документы».
+На выходе: заголовок; 5–7 коротких пунктов; блок «Что будет, если прислать поздно» — без запугивания; одна строчка для мессенджера со ссылкой на памятку.
+Тон: дружелюбно, на «вы», без канцелярита, как пишет живой человек.
+Нельзя: придумывать сроки и штрафы — где нужен срок, оставь [срок].`}},
+  {warn:'Свои реестры, выписки и договоры клиентов в нейросеть не загружаем (урок 1.1). Нейросети нужны факты и цифры, а не персональные данные.'},
+  {note:'Удачное ТЗ сохраните в папку «04-Шаблоны» — в следующий раз меняете только вводные.'}]},
+ {h:'Большая задача: ветки и сборка',s:'Когда вопросов много и каждый важен',c:[
+  {split:[{l:'Одно ТЗ',ul:['Обычные задачи','Один результат','Большинство случаев']},{l:'Ветки + сборка',ul:['Несколько независимых вопросов','Нужна глубина по каждому','Ответ одним запросом — по верхам']}]},
+  {steps:['Возьмите ТЗ «Налоговый вопрос» выше: в нём четыре вопроса клиента','Разбейте на три ветки — налог на прибыль; НДФЛ и взносы; документы. Каждая — отдельный чат в проекте «Мой ИИ-бухгалтер» с шаблоном «Ветка»','Новый чат → шаблон «Сборка» + три ответа → черновик заключения','Каждую норму откройте в КонсультантПлюс или Гаранте: есть ли, та ли редакция, тот ли период']},
+  {prompt:{l:'Ветка',t:`Это часть большой задачи. Вся ситуация: [вставьте вводные из ТЗ].
+В этом чате разбираем только один вопрос: [расходы по налогу на прибыль / НДФЛ и страховые взносы / какие документы собрать].
+На выходе: вывод в 2–3 предложениях; норма — статья, пункт; условия, при которых вывод верен; что проверить по первоисточнику.
+Если не уверен — так и скажи.`}},
+  {prompt:{l:'Сборка',t:`Ниже ответы по трём частям одного вопроса клиента. Собери из них черновик заключения:
+1. Ситуация.
+2. Ответы на вопросы клиента по порядку.
+3. Нормы — списком.
+4. Документы, которые нужно собрать.
+5. Что проверить по первоисточнику.
+Ничего не добавляй от себя. Если ответы противоречат друг другу — покажи противоречие, не сглаживай.
+[ветка 1] [ветка 2] [ветка 3]`}},
+  {reveal:{q:'Проверить себя',a:'Расходы — п. 3 ст. 264 НК РФ; НДФЛ — п. 21 ст. 217 НК РФ; взносы — подп. 12 п. 1 ст. 422 НК РФ. Документы: договор с образовательной организацией, её лицензия, документ о прохождении обучения, связь обучения с работой. Редакцию проверяйте на свою дату.'}},
+  {links:['cons','garant']}]},
+ {h:'Skills',s:'Встроенные, Humanizer и свой',c:[
+  {p:'Скилл — сохранённое умение нейросети: инструкция, иногда с шаблонами и файлами. Запрос вы каждый раз копируете, а скилл Claude <b>включает сам</b>, когда задача подходит.'},
+  {tabs:{Claude:'<p>Настройки → Возможности → включите <b>создание файлов</b> и <b>Skills</b>. Работает и на бесплатном тарифе (лимиты на файлы расходуются быстрее). Свой скилл создаётся прямо в чате: «сделай скилл…».</p>',ChatGPT:'<p>Скиллов в таком виде нет: используйте инструкции проекта. Проверьте, не появились ли скиллы в вашей версии.</p>','GigaChat и DeepSeek':'<p>Скиллов нет: файл «Мои шаблоны» в заметках. Humanizer — запрос 2.5 из библиотеки.</p>'}},
+  {p:'<b>Презентация собственнику.</b> Просто попросите — Claude сам возьмёт скилл PowerPoint и отдаст файл .pptx.'},
+  {prompt:{l:'Презентация собственнику (учебные данные)',t:`Сделай презентацию PowerPoint на 6 слайдов для собственника: «Итоги III квартала 2026».
+Данные (учебные): выручка 12,4 млн ₽ (во II квартале — 10,9 млн ₽), расходы 9,8 млн ₽, аванс по УСН за квартал — 390 тыс. ₽, дебиторка 1,6 млн ₽, из неё просрочено 420 тыс. ₽ у двух клиентов, ФОТ 2,1 млн ₽.
+Слайды: итог одной фразой; выручка и расходы с графиком; налоги; дебиторка и риски; что сделать в IV квартале; вопросы собственнику.
+Стиль строгий, крупные цифры, без воды.`}},
+  {prompt:{l:'Без VPN и подписки: HTML-презентация',t:`Сделай HTML-презентацию в одном файле: 6 слайдов, переключение стрелками на клавиатуре, строгий дизайн, без внешних ссылок и картинок из интернета.
+Тема и данные: [вставьте то же, что для PowerPoint].`}},
+  {note:'HTML-код сохраните в файл <b>prezentaciya.html</b> (как — в уроке 1.6), откройте в браузере, затем «Печать» → «Сохранить как PDF». Gamma тоже делает презентации, но бесплатных стартовых кредитов хватит только попробовать.'},
+  {p:'<b>Свой скилл Humanizer.</b> Создайте его в чате Claude и проверьте на канцелярском тексте.'},
+  {prompt:{l:'Создать скилл Humanizer',t:`Сделай скилл «Humanizer». Он должен включаться, когда я прошу «очеловечь», «убери канцелярит» или готовлю текст клиенту.
+Что делает: переписывает текст простым живым языком — короткие предложения, без «в целях», «осуществляется», «в рамках», «доводим до вашего сведения» и без ИИ-штампов вроде «важно отметить». Обращение к клиенту — на «вы».
+Смысл, сроки, суммы и ссылки на нормы не меняет. В конце — короткий список того, что заменил.`}},
+  {prompt:{l:'Текст для проверки',t:'Доводим до Вашего сведения, что в целях своевременного осуществления закрытия отчётного периода Вам необходимо в срок до 5 числа обеспечить предоставление первичной документации в полном объёме.'}},
+  {reveal:{q:'Что должно получиться',a:'Примерно так: «Пожалуйста, пришлите все документы за месяц до 5 числа — так мы успеем вовремя закрыть период». Смысл и срок те же, канцелярита нет, внизу — список замен.'}},
+  {table:{h:['Скилл','Что делает','Откуда'],r:[['Word, Excel, PowerPoint, PDF','Договоры, таблицы с формулами, презентации, PDF','встроенные в Claude'],['Skill Creator','Помогает сделать свой скилл из удачного запроса','встроенный в Claude'],['Humanizer','Убирает канцелярит и ИИ-штампы','делаем на уроке'],['Письмо клиенту','ТЗ из блока 1: новая цена, напоминание, запрос документов — в вашем тоне','сделать самому'],['Налоговое заключение','Ветки + сборка + что проверить','сделать самому'],['Разбор документа','Структура, цитаты, было/стало, памятка (урок 1.5)','сделать самому'],['Конспект вебинара','Расшифровка → конспект → что проверить (урок 1.5)','сделать самому']]}},
+  {quote:'Нашли запрос, который работает, — сделайте из него скилл.'}]},
+ {h:'Коннекторы и плагины',s:'Подключаем Google — безопасно',c:[
+  {cards:[{h:'Скилл',p:'Умение: что и как делать.'},{h:'Коннектор',k:'b',p:'Доступ к сервису: календарь, почта, диск.'},{h:'Плагин',k:'t',p:'Готовый набор: скиллы, коннекторы и команды под профессию. Пригодится в модуле 2.'}]},
+  {warn:'Подключить почту — значит открыть нейросети всю почту. Подключайте учебный или личный Google-аккаунт, а не рабочий с перепиской клиентов. ИИ готовит черновик — отправляете вы.'},
+  {tabs:{Claude:'<p>Настройки → <b>Коннекторы</b> → Google Календарь / Gmail / Google Диск → «Подключить» → войдите в Google → разрешите доступ. В чате кнопка «+» включает и выключает коннекторы.</p>',ChatGPT:'<p>Настройки → <b>Приложения</b> → Google Диск, Gmail, Календарь. Часть приложений — только на платном тарифе, проверьте в своём аккаунте.</p>','GigaChat и DeepSeek':'<p>Коннекторов нет — этот блок для вас обзорный.</p>'}},
+  {prompt:{l:'Сроки в календарь',t:`Создай в моём Google Календаре события на декабрь 2026 — сроки, которые я сверила по календарю бухгалтера:
+[дата] — [отчёт или платёж]
+[дата] — [отчёт или платёж]
+[дата] — [отчёт или платёж]
+Название события — что сдаём или платим. Напоминание за 3 дня. В описании — «проверено по календарю бухгалтера [дата]».`}},
+  {note:'Даты вписывайте сами, сверив по календарю бухгалтера. Если попросить ИИ «найти сроки самому», он может ошибиться.'},
+  {prompt:{l:'Gmail: черновик ответа',t:`Найди в моей почте письма от [имя или адрес] за последние 7 дней.
+Выпиши коротко, что просят и к какому сроку.
+Подготовь черновик ответа в Gmail — не отправляй.`}},
+  {prompt:{l:'Google Диск: сводка',t:'Возьми таблицу «[название]» из моего Google Диска и сделай сводку: итоги по месяцам и три вывода. Ничего в файле не меняй.'}},
+  {p:'Ещё полезно: <b>Canva</b> — посты и памятки для клиентов, хватает бесплатного аккаунта. Ненужный коннектор после работы отключайте.'}]}
+ ],
+ hw:{t:'ТЗ, скилл и <em>презентация</em>',tasks:['Своя повторяющаяся задача → ТЗ по шаблону → сохранить в «04-Шаблоны»','Сделать свой скилл: Humanizer или «Письмо клиенту» — и проверить, что включается сам','Сделать одну презентацию: в Claude через PowerPoint или HTML → PDF','По желанию: подключить Google Календарь и внести свои сроки на месяц'],done:'скилл срабатывает без копирования запроса, а презентация открывается.'}},
+
+{id:'l4',no:'1.4',block:'Техническая база',title:'Модели, токены, контекст и деньги',
+ can:'выбирать модель под задачу, понимать, почему длинный чат «забывает», и отличать подписку от API.',
+ need:['Аккаунт в любом сервисе'],
+ blocks:[
+ {h:'Какие бывают модели',s:'Claude, ChatGPT, GigaChat, DeepSeek — по пунктам',c:[
+  {p:'В каждом сервисе несколько моделей — как сотрудники разной квалификации. Названия разные, принцип один: <b>лёгкая, основная, сильная</b> — и отдельный <b>режим рассуждения</b>.'},
+  {tabs:{Claude:'<ul><li><b>Haiku</b> — самая быстрая и лёгкая. Короткие ответы, переформулировать, простой вопрос. Есть бесплатно.</li><li><b>Sonnet</b> — основная рабочая модель. Письма, ТЗ, документы, проекты — 80% задач. Бесплатно, по умолчанию.</li><li><b>Opus</b> — сильная, думает глубже. Сложный налоговый вопрос, длинный документ, анализ. Тариф Pro и выше.</li><li><b>Fable</b> — самая мощная, новое поколение 2026 года. Самые сложные задачи, большие проекты, код. Платные тарифы.</li><li><b>Расширенное мышление</b> — переключатель у поля ввода: включает рассуждение у выбранной модели. Расчёты и налоги.</li></ul><p>Цифра после названия — версия: 5.5 новее, чем 5. Сейчас: Fable 5.2, Opus 5.5, Sonnet 5.5, Haiku 5.5 — сверьте с меню на дату записи.</p>',ChatGPT:'<ul><li><b>Instant</b> (быстрая) — отвечает сразу. Письма, черновики, короткие вопросы. Есть бесплатно.</li><li><b>Thinking / «Думать»</b> — рассуждение, бывает с уровнями (средний, высокий). Расчёты, налоги, таблицы. Бесплатно — с ограничениями.</li><li><b>Pro</b> — максимальная, думает долго. Очень сложные задачи. Только дорогой тариф Pro.</li><li><b>Auto</b> — ChatGPT сам выбирает режим по вопросу.</li></ul><p>Названия версий GPT меняются чаще всего. Называйте то, что видите в меню на дату записи: [название в меню].</p>',GigaChat:'<ul><li><b>Lite</b> — быстрая и дешёвая, простые ответы.</li><li><b>Pro</b> — основная.</li><li><b>Max</b> — самая сильная, сложные вопросы.</li></ul><p>В чате giga.chat модель обычно выбирать не нужно. Выбор Lite / Pro / Max важен в API — для бота в модуле 5: чем сильнее модель, тем дороже токены.</p>',DeepSeek:'<ul><li><b>Обычный режим</b> — быстрые ответы.</li><li><b>DeepThink</b> (кнопка под полем ввода) — рассуждение: расчёты, налоги. Бесплатно.</li><li><b>Search</b> (кнопка) — поиск в интернете.</li></ul><p>Отдельно модель выбирать не нужно — только эти кнопки. Данные клиентов не загружаем: серверы в Китае.</p>'}},
+  {note:'Названия версий меняются несколько раз в год. Смотрите в меню своего сервиса — принцип «лёгкая / основная / сильная + рассуждение» остаётся.'}]},
+ {h:'Какую модель выбрать',s:'Задача → модель',c:[
+  {table:{h:['Задача','Claude','ChatGPT','GigaChat','DeepSeek'],r:[['Письмо, пост, ответ клиенту','Sonnet или Haiku','Instant','GigaChat','обычный'],['ТЗ, разбор документа, проект','Sonnet','по умолчанию / Auto','GigaChat Pro / Max','обычный'],['Расчёт, налоговый вопрос, сложная таблица','Sonnet + расширенное мышление или Opus','Thinking','GigaChat Max','DeepThink'],['Большой сложный анализ, много материалов, код','Opus или Fable (платно)','Thinking высокий уровень или Pro','—','DeepThink']]}},
+  {quote:'Письмо — быстрая модель. Расчёт и налоги — рассуждение. Сложный анализ — сильная модель.'},
+  {p:'Почему не включать самую сильную всегда: она медленнее и быстрее съедает лимиты.'}]},
+ {h:'Проверьте сами',s:'Задача с известным ответом',c:[
+  {prompt:{l:'Задача',t:'Обслуживание клиента стоит 15 000 ₽ в месяц. С нового года у клиента добавится учёт НДС — это ещё 4 часа работы в месяц. Моя ставка 1 500 ₽ в час. Какой должна быть новая цена и на сколько процентов она вырастет?'}},
+  {pk:'1.4'},
+  {reveal:{q:'Показать ответ',a:'4 часа × 1 500 ₽ = 6 000 ₽. Новая цена — 21 000 ₽, рост на 40%.'}}]},
+ {h:'Токены и контекст',s:'Почему длинный чат «забывает»',c:[
+  {ul:['<b>Токен</b> — кусочек слова. Лимиты и оплата API считаются в токенах','<b>Контекст</b> — рабочий стол модели: инструкция, файлы и вся переписка в чате','Стол большой, но не бесконечный: в очень длинном чате начало уходит со стола']},
+  {quote:'Одна задача — один чат. Большой файл — частями или в проект.'},
+  {note:'Нужна информация из старого чата — попросите краткое резюме и вставьте его в новый.'}]},
+ {h:'Подписка, лимиты и API',s:'Три разные вещи',c:[
+  {table:{h:['Что','За что платим','Где в курсе'],r:[['Подписка','Чат на сайте и в приложении','Модули 1–4'],['Лимиты сообщений','Сколько можно написать за период','Везде'],['API','Токены, которые тратит программа','Модули 3 и 5: агент и бот']]}},
+  {warn:'Подписка — это не оплата API. Для бота нужен отдельный ключ и отдельный баланс. Ключ GigaChat получим в уроке 1.6.'}]}
+ ],
+ hw:{t:'Две модели — <em>одна задача</em>',tasks:['Задать свою задачу (расчёт или налоговый вопрос) быстрой модели и модели с рассуждением','Записать, где ответ лучше','Посмотреть лимиты своего тарифа'],done:'вы можете объяснить себе, зачем вам подписка и когда понадобится API.'}},
+
+{id:'l5',no:'1.5',block:'Техническая база',title:'Файлы и форматы, транскрибация',
+ can:'превращать видео, аудио и вебинары в текст и конспекты, а ещё — разбирать с нейросетью длинные публичные документы и ошибки по скриншоту.',
+ need:['Видеоурок «Транскрибация» на платформе (8–9 мин)','Видео или запись для расшифровки','Telegram (Буквица) или программа Buzz','PDF свежего закона или письма ФНС'],
+ blocks:[
+ {h:'Видеоурок: транскрибация',s:'Смотрите видео на платформе — здесь подробная инструкция',c:[
+  {p:'Главная тема урока — <b>транскрибация</b>: видео или аудио превращаем в текст, а текст — в понятный конспект. Подойдёт запись эфира, урок, вебинар, видео с YouTube, запись Zoom, голосовое. Как это выглядит — в видео (8–9 минут) на платформе курса.'},
+  {flow:['Видео или ссылка','Расшифровка','Конспект','Доработка в ChatGPT / Claude']},
+  {cards:[{h:'Буквица',tag:'ok',tg:'Telegram · без VPN',p:'Бот в Telegram. Отправили файл или ссылку — получили текст. Ничего не нужно устанавливать, работает и с телефона.',go:'bukvitsa'},{h:'Buzz',k:'b',tag:'ok',tg:'Бесплатно · без интернета',p:'Программа для Windows и Mac. Расшифровывает прямо на компьютере — файл никуда не уходит. Без лимитов.',go:'buzz'}]}]},
+ {h:'Буквица или Buzz: что когда выбрать',s:'Тарифы и ситуации',c:[
+  {table:{h:['','Буквица','Buzz'],r:[['Где работает','Telegram: телефон и компьютер','Программа на компьютере (Windows, Mac)'],['Нужен интернет','Да — файл уходит на сервер сервиса','Только при первом запуске, чтобы скачать модель'],['Принимает ссылки','YouTube, VK Видео, RuTube, Google Диск, Яндекс Диск','Нет — только файл с компьютера'],['Голосовые и кружочки','Да, прямо из Telegram','Сначала сохранить файл'],['Скорость','Быстро, не зависит от компьютера','Зависит от мощности компьютера'],['Бесплатно','3 записи в месяц, до 2 часов каждая, без карты','Полностью бесплатно, без лимитов'],['Платно','«Базовый» — 649 ₽/мес или 3 890 ₽/год; «Про» — 1 449 ₽/мес или 8 690 ₽/год','—']]}},
+  {note:'Цены и лимиты Буквицы — на ноябрь 2026, проверяйте в боте. Автопродление подписки включено по умолчанию — отключается в личном кабинете бота.'},
+  {split:[{l:'Берите Буквицу, если',ul:['Есть ссылка на видео: YouTube, вебинар, VK, RuTube','Нужно быстро и с телефона','Голосовое или кружочек в Telegram','Слабый или рабочий компьютер, куда нельзя ставить программы','Это публичное видео или ваша собственная запись']},{l:'Берите Buzz, если',ul:['Запись конфиденциальная: внутренняя планёрка, созвон с клиентом (с его согласия)','Нужно расшифровывать много часов в месяц бесплатно','Нет интернета или он нестабильный','Не хотите отправлять файл стороннему сервису']}]},
+  {warn:'Буквица — сторонний сервис: ваш файл уходит на его сервер. Туда — публичные видео и свои записи. Всё, где звучат данные клиентов, — только через Buzz и только с согласия клиента.'}]},
+ {h:'Инструкция: Буквица',s:'Расшифровка за 5 минут в Telegram',c:[
+  {links:['bukvitsa']},
+  {steps:['Откройте бота по ссылке выше или найдите <b>@bykvitsa</b> в поиске Telegram и нажмите «Старт»','Отправьте боту видео- или аудиофайл, голосовое, кружочек — или просто вставьте ссылку на YouTube, VK Видео, RuTube, Google Диск или Яндекс Диск','Для ссылки на Диск откройте доступ: «Все, у кого есть ссылка»','Подождите несколько минут — бот пришлёт текст сообщением или файлом','Скопируйте текст и доработайте его промптом «Доработка конспекта» ниже','Готовый конспект сохраните в папку «05-Результаты»']},
+  {note:'Бесплатных трёх записей в месяц хватит, чтобы попробовать и сделать домашку. Платный тариф берите, только если расшифровываете регулярно.'}]},
+ {h:'Инструкция: Buzz',s:'Бесплатная расшифровка прямо на компьютере',c:[
+  {links:['buzz']},
+  {steps:['Откройте страницу загрузки по ссылке выше и скачайте файл для своей системы: <b>Windows</b> — файл .exe, <b>Mac</b> — файл .dmg','Установите программу. Windows может предупредить, что приложение не проверено: «Подробнее» → «Выполнить в любом случае». На Mac при первом открытии: правый клик по программе → «Открыть»','Откройте Buzz и добавьте файл: кнопка «+» или меню «Файл» → «Импорт»','Настройки: качество — <b>Medium</b>, язык — <b>Russian</b>, задача — <b>Transcribe</b> (расшифровать)','Запустите. При первом запуске Buzz скачает модель распознавания — нужен интернет, это один раз','Дождитесь окончания: час записи на обычном ноутбуке — примерно от 10 до 30 минут','Экспорт: формат <b>Text</b> (.txt) — и доработайте текст промптом ниже']},
+  {table:{h:['Качество в Buzz','Когда выбирать'],r:[['Low','Быстро проверить, о чём запись; слабый компьютер'],['Medium','Основной вариант для русского языка — баланс скорости и точности'],['High','Важная запись, плохой звук, много терминов; нужен мощный компьютер (от 8 ГБ памяти)']]}},
+  {note:'Скачивайте Buzz только со страницы проекта на GitHub — по ссылке выше. Программа бесплатная: если где-то просят деньги за «Buzz», это посредник.'}]},
+ {h:'Что делать с расшифровкой',s:'Доработка в ChatGPT или Claude',c:[
+  {p:'Сырая расшифровка — это разговорная речь с повторами. Чтобы получился понятный материал, отдаём её нейросети с ролью и аудиторией.'},
+  {prompt:{l:'Доработка конспекта',t:`Ты — редактор и методист. Ниже расшифровка (или черновой конспект) видео на тему [тема].
+Аудитория: бухгалтеры без технических навыков.
+Задача: сделать понятный учебный конспект.
+На выходе:
+1. Введение — 2–3 предложения: о чём видео и кому полезно.
+2. Ключевые тезисы — списком.
+3. Основные блоки с подзаголовками.
+4. Пошаговая инструкция, если в видео есть действия.
+5. Термины простыми словами.
+6. Что проверить по первоисточнику: нормы, даты, цифры.
+Убери повторы и разговорные слова. Ничего не добавляй от себя.
+[текст]`}},
+  {prompt:{l:'Голосовое → задачи',t:`Ниже расшифровка моего голосового. Составь:
+1. Список задач: что сделать, кто, срок. Если срок или исполнитель не названы — пиши «не указано».
+2. Принятые решения.
+3. Открытые вопросы.
+Ничего не добавляй от себя.
+[расшифровка]`}},
+  {note:'Где пригодится: конспект консультации для клиента, база знаний, обучение сотрудников, памятки, посты. Иногда достаточно прочитать конспект вместо часа видео.'},
+  {p:'Расшифровка — это тот же текст, что и любой другой: нормы, даты и цифры, которые назвал спикер, проверяем по первоисточнику.'}]},
+ {h:'Дальше — текстовая инструкция',s:'Без видео: прочитайте и повторите',c:[
+  {p:'Следующие блоки — короткие инструкции. Видео к ним нет: всё описано по шагам, промпты можно копировать.'}]},
+ {h:'Что ИИ читает и что в него загружаем',s:'Форматы и главное правило',c:[
+  {table:{h:['Формат','Как читает ИИ'],r:[['TXT, Word, Markdown','Отлично'],['Excel, CSV','Хорошо'],['PDF с текстом (можно выделить мышкой)','Хорошо'],['Скан, фото, скриншот','Читает, но цифры сверяем'],['Аудио','Через расшифровку в текст']]}},
+  {quote:'В нейросеть — публичные документы и свои тексты. Документы клиентов — нет.'},
+  {p:'Публичное — законы, письма Минфина и ФНС, приказы с формами, разъяснения, вебинары. Их можно загружать спокойно.'},
+  {note:'Как отличить PDF с текстом от скана: попробуйте выделить слово мышкой. Выделяется — текст есть.'}]},
+ {h:'Длинный документ за 10 минут',s:'Структура → цитаты → было/стало → памятка',c:[
+  {links:['pravo','fns','cons']},
+  {steps:['Скачайте PDF документа и загрузите в чат','Промпт 1 — структура и что меняется, со ссылками на пункты','Промпт 2 — дословные цитаты по вашей теме','Проверьте одну цитату в оригинале: Ctrl+F в PDF','Если есть две редакции — промпт 3 «было — стало»','Промпт 4 — памятка клиентам и чек-лист для себя']},
+  {prompt:{l:'1. Структура и что меняется',t:`Прикладываю [название документа] — это публичный документ.
+Задача: разобраться, что в нём важно для бухгалтера.
+На выходе:
+1. О чём документ — 3 предложения.
+2. Структура: разделы и о чём каждый — с номерами пунктов или страниц.
+3. Что меняется для ООО и ИП на УСН и ОСН — списком, с номером пункта.
+4. С какой даты вступает в силу.
+Каждое утверждение — со ссылкой на пункт или страницу. Если чего-то в документе нет — так и скажи, не додумывай.`}},
+  {prompt:{l:'2. Дословные цитаты по теме',t:`Найди в документе всё, что касается [тема: НДС на УСН / сроки уплаты / отчётность]. Процитируй дословно, с номером пункта и страницы. Без пересказа.`}},
+  {prompt:{l:'3. Было — стало',t:`Прикладываю две редакции документа: старую и новую.
+Сделай таблицу: пункт — было — стало — что это значит для бухгалтера.
+Только реальные отличия. В колонках «было» и «стало» — дословные формулировки.`}},
+  {prompt:{l:'4. Памятка клиентам и чек-лист',t:`По разобранному документу сделай:
+1. Памятку для клиентов — до 150 слов, простым языком, без номеров статей.
+2. Чек-лист для бухгалтера: что сделать и к какой дате.
+Даты и цифры — только из документа. Где их нет — оставь [дата].`}},
+  {warn:'Нейросеть может пересказать неточно. Поэтому просим ссылку на пункт и дословную цитату — и проверяем её в оригинале.'},
+  {note:'<b>NotebookLM</b> от Google отвечает только по загруженным документам и показывает место в тексте. Бесплатно, нужен VPN.'}]},
+ {h:'Скриншот ошибки',s:'1С, банк-клиент, личный кабинет',c:[
+  {steps:['Снимок части экрана: Windows — Win+Shift+S, Mac — Cmd+Shift+4','Закрасьте ИНН, названия, ФИО и суммы','Вставьте в чат (Ctrl+V / Cmd+V) и отправьте промпт']},
+  {prompt:{l:'Ошибка по скриншоту',t:`На скриншоте — сообщение об ошибке в [1С / банк-клиенте / личном кабинете ФНС / программе отчётности].
+Что оно значит и что сделать по шагам?
+Если причин может быть несколько — перечисли, начиная с самой частой, и как проверить каждую.`}},
+  {p:'Так же можно спросить, где найти отчёт или кнопку: скриншот окна + «где здесь…».'}]},
+ {h:'Диктовка вместо печати',s:'Говорить быстрее, чем печатать',c:[
+  {tabs:{'В приложениях':'<p>ChatGPT и Claude — значок микрофона в поле ввода. GigaChat — голосовой ввод в приложении на телефоне.</p>',Windows:'<p><b>Win+H</b> — диктовка в любом поле.</p>',Mac:'<p>Дважды нажмите <b>Fn</b> (или клавишу 🌐) — диктовка в любом поле.</p>'}},
+  {p:'Длинное ТЗ из урока 1.3 удобно надиктовать, а потом поправить текст.'}]}
+ ],
+ hw:{t:'Транскрибация и <em>документы</em>',tasks:['Расшифровать одно видео или голосовое (Буквица или Buzz) и доработать конспект в ChatGPT или Claude','Разобрать один свежий публичный документ (закон или письмо ФНС) и сделать памятку клиентам','Проверить одну цитату в оригинале через Ctrl+F','По желанию: решить одну свою ошибку по скриншоту — данные закрасить'],done:'есть конспект или список задач без выдуманных сроков, а памятку можно отправить клиентам.'}},
+
+{id:'l6',no:'1.6',block:'Техническая база',title:'API, ключи, HTML и консоль',
+ can:'объяснить, что такое API и ключ, получить ключ GigaChat, сделать HTML-страницу и выполнить первые команды в консоли.',
+ need:['Сбер ID','Текстовый редактор','Терминал (Mac) или PowerShell (Windows)'],
+ blocks:[
+ {h:'Что такое API',s:'Окно выдачи между программами',c:[
+  {flow:['Программа','Запрос + ключ','Сервис','Ответ']},
+  {p:'Вы уже пользуетесь API: банк-клиент передаёт выписку в 1С. В модуле 5 бот «Нео» будет ходить в 1С через OData и к GigaChat через API.'},
+  {steps:['Клиент пишет в MAX: «Выставьте счёт ООО Ромашка на 10 стеллажей»','Бот через API спрашивает GigaChat: кто покупатель, какой товар, сколько','Бот через OData проверяет в 1С контрагента, номенклатуру и цену','Вы видите черновик и нажимаете «Создать» — счёт в 1С']}]},
+ {h:'Ключ GigaChat',s:'Получаем и храним как пароль',c:[
+  {steps:['Войдите в кабинет разработчика Сбера через Сбер ID','Раздел GigaChat API → создайте проект, например «Бот для 1С»','Получите ключ авторизации и сразу сохраните его','Проверьте ключ в песочнице кабинета']},
+  {links:['sber']},
+  {split:[{l:'Где хранить',ul:['Менеджер паролей','Защищённая заметка']},{l:'Где не хранить',no:1,ul:['Переписка и чат с нейросетью','Скриншоты','Файл на рабочем столе']}]},
+  {warn:'Ключ попал в чужие руки или на скриншот — сразу перевыпустите его.'}]},
+ {h:'HTML-страница от нейросети',s:'Памятка за пять минут',c:[
+  {prompt:{l:'Запрос',t:'Сделай одну HTML-страницу «Сроки отчётности на декабрь» для бухгалтера: заголовок и таблица с колонками «Дата», «Что сдаём», «Кто сдаёт». Даты и отчёты не придумывай — оставь 5 пустых строк, заполню сама. Аккуратный строгий дизайн, всё в одном файле, без внешних ссылок.'}},
+  {tabs:{Mac:'<p>TextEdit → меню «Формат» → «Создать простой текст» → вставить код → сохранить как <b>pamyatka.html</b>.</p>',Windows:'<p>Блокнот → вставить код → «Сохранить как» → тип «Все файлы» → имя <b>pamyatka.html</b>, кодировка UTF-8.</p>'}},
+  {p:'Двойной клик по файлу — страница открылась в браузере. Хотите поправить — просите нейросеть, а не правьте код.'},
+  {links:['github']},{note:'GitHub — место, где такие страницы публикуют. Подробно — в модуле 2, аккаунт заведите уже сейчас.'}]},
+ {h:'Консоль',s:'Команды вместо кликов',c:[
+  {quote:'Скопировала — вставила — Enter — прочитала ответ.'},
+  {tabs:{Mac:'<p>Cmd + Пробел → «Терминал».</p>',Windows:'<p>Пуск → PowerShell. Команды pwd, ls и cd работают так же.</p>'}},
+  {table:{h:['Команда','Что делает'],r:[['pwd','Показывает, где я сейчас'],['cd Desktop','Перейти на рабочий стол'],['mkdir kurs-test','Создать папку'],['cd kurs-test','Зайти в папку'],['ls','Показать, что в папке']]}},
+  {note:'Ошибка — не страшно. Скопируйте её целиком и спросите нейросеть: «что это значит и что делать?»'},
+  {warn:'Вводите только команды из курса или те, смысл которых понимаете.'}]}
+ ],
+ hw:{t:'Ключ, страница <em>и команды</em>',tasks:['Получить ключ GigaChat и сохранить его в надёжном месте','Сделать с нейросетью свою HTML-памятку и открыть её в браузере','Выполнить в консоли команды pwd и ls'],done:'ключ работает в песочнице, а страница открывается.'}},
+
+{id:'l7',no:'1.7',block:'Техническая база',title:'Нейросети внутри таблиц',
+ can:'получать от нейросети формулы и скрипты для своих таблиц по описанию колонок и запускать их — данные в нейросеть не уходят.',
+ need:['Google-аккаунт','Своя таблица или её копия'],
+ blocks:[
+ {h:'Формулы словами',s:'Описываете задачу — получаете формулу',c:[
+  {prompt:{l:'Запрос на формулы',t:`У меня Google Таблица. Данные не показываю, только структуру.
+Лист «Выписка»: A — дата, B — контрагент, C — сумма.
+1. Формула: сумма по контрагенту, название которого в ячейке E2.
+2. Формула для колонки D: пишет «крупный», если сумма больше 100 000.
+3. Формула для колонки F: месяц из даты в колонке A — для сводной по месяцам.
+Формулы на русском, разделитель — точка с запятой. Объясни каждую в одной строке.`}},
+  {links:['sheets']},
+  {quote:'Нейросеть видит описание колонок, а не ваши данные.'},
+  {note:'Формула выдала ошибку — скопируйте текст ошибки (не данные) и напишите нейросети: «исправь».'}]},
+ {h:'Apps Script',s:'Скрипт разносит выписку по контрагентам',c:[
+  {prompt:{l:'Запрос на скрипт',t:`Напиши скрипт Google Apps Script для моей таблицы.
+Лист «Выписка»: строка 1 — заголовки, A — дата, B — контрагент, C — сумма.
+Для каждого контрагента создай отдельный лист с его названием и скопируй туда его строки. Внизу каждого листа — итог суммы. Если лист уже есть — перезапиши его.
+Дай пошаговую инструкцию: куда вставить и как запустить.`}},
+  {steps:['Таблица → «Расширения» → «Apps Script»','Удалите пустую функцию, вставьте код, «Сохранить»','«Выполнить» → разрешите доступ: «Дополнительно» → «Перейти к проекту»','Вернитесь в таблицу — появились листы по контрагентам']},
+  {note:'Скрипт работает внутри вашей таблицы — нейросеть ваши строки не видит.'},
+  {warn:'Разрешайте доступ только своим скриптам. Экспериментируйте на копии таблицы.'}]},
+ {h:'Вариант для Excel',s:'Макрос, написанный нейросетью',c:[
+  {tabs:{Windows:'<p>Alt+F11 → «Вставка» → «Модуль» → вставить код → F5.</p>',Mac:'<p>Меню «Сервис» → «Макросы» → «Редактор Visual Basic».</p>'}},
+  {p:'Сохраняйте файл как «Книга Excel с поддержкой макросов» (.xlsm), иначе макрос пропадёт.'}]}
+ ],
+ hw:{t:'Таблица <em>считает сама</em>',tasks:['Взять таблицу, с которой работаете регулярно','Получить от нейросети формулу или скрипт под свою задачу и запустить'],done:'таблица считает сама.'}},
+
+{id:'l8',no:'1.8',block:'Итог',title:'Комплексный практикум',
+ can:'решить бизнес-задачу бухгалтера от начала до конца и составить личную карту ИИ-задач.',
+ need:['Проект «Мой ИИ-бухгалтер»','Своя таблица клиентов (в нейросеть не загружаем)','КонсультантПлюс или Гарант'],
+ blocks:[
+ {h:'Кейс: НДС на УСН с 2027 года',s:'Что сделаем',c:[
+  {steps:['Заключение для клиентов с проверкой ссылок','Пересчёт режимов и часов работы','Новая цена и письмо клиенту','Личная карта ИИ-задач']}]},
+ {h:'Заключение и оппонент',s:'Запросы 4.1 и 4.2 + проверка',c:[
+  {pk:'4.1'},{pk:'4.2'},
+  {warn:'Пороги и ставки проверяйте в Налоговом кодексе на свою дату — нейросеть может знать старую редакцию.'},
+  {links:['cons','garant']}]},
+ {h:'Пересчёт и новая цена',s:'Кого коснётся и сколько добавится работы',c:[
+  {warn:'Таблицу клиентов в нейросеть не загружаем. Просим формулы по описанию колонок, а одного клиента описываем цифрами словами, без названия.'},
+  {steps:['Промпт ниже → формулы → вставьте в свою таблицу: пометка «НДС с 2027» и новая цена','Порог вписываете в ячейку сами — сверив по Налоговому кодексу','Одного клиента сравните по режимам — запрос 4.4, цифры словами','Часы и надбавка — запрос 2.4, пункты 1–2 → в ячейки таблицы','Одного клиента пересчитайте сами']},
+  {prompt:{l:'Формулы для таблицы клиентов',t:`У меня таблица клиентов в Excel или Google Таблицах. Данные не показываю, только структуру.
+Колонки: A — клиент, B — вид деятельности, C — выручка за 2026 год, D — часов в месяц на клиента, E — текущая цена в месяц.
+1. Формула для колонки F: «НДС с 2027», если выручка в C больше порога из ячейки H1.
+2. Формула для колонки G: новая цена = E + (дополнительные часы из H2 × ставка из H3), только для строк с пометкой в F; иначе — E.
+3. Как подсветить строки с пометкой цветом.
+Формулы на русском, разделитель — точка с запятой. Если чего-то не хватает — спроси.`}},
+  {pk:'4.4'},{pk:'2.4'}]},
+ {h:'Письмо клиенту',s:'Без давления и без лишних цифр',c:[
+  {steps:['Пункт 3 запроса 2.4 — письмо о новой цене','Гуманайзер — запрос 2.5','Сверьте каждую цифру письма с расчётом']},
+  {quote:'В письме нет цифр и сроков, которых нет в расчёте.'}]},
+ {h:'Личная карта ИИ-задач',s:'Сколько времени вы экономите',c:[
+  {table:{h:['Задача','Сервис','Запрос или скилл','Было','Стало'],r:[['Письмо клиенту о документах','Claude','скилл «Письмо клиенту»','30 мин','5 мин'],['Письмо ФНС → памятка клиентам','Claude / ChatGPT','промпты урока 1.5','1,5 ч','20 мин'],['Ответ на налоговый вопрос','проект','4.1 + 1.3','1,5 ч','35 мин'],['Ваша задача','','','','']]}},
+  {note:'Это пример. Составьте свою карту на 10 задач — пригодится для разговора о цене с клиентами и руководителем.'}]}
+ ],
+ hw:{t:'Итог <em>модуля</em>',tasks:['Пройти кейс: заключение, пересчёт, письмо','Составить личную карту ИИ-задач на 10 задач','Заполнить чек-лист технической готовности ниже'],done:'карта заполнена, и три задачи из неё уже работают в жизни.'},
+ ready:['Аккаунты: GigaChat + ChatGPT и/или Claude','Решён вопрос с VPN и оплатой — или выбран путь без VPN','Персонализация настроена, есть проект «Мой ИИ-бухгалтер»','Папка «Курс_ИИ» с подпапками на компьютере','Аккаунт GitHub (модуль 2)','Google-аккаунт и доступ к Google Таблицам','Ключ GigaChat получен и сохранён (модуль 5)','Знаю, где храню ключи и пароли','Только PRO: 1С проверена по чек-листу совместимости']}
+];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store = {get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const link = k => `<a class="go" href="${L[k].u}" target="_blank" rel="noopener">${esc(L[k].t)}</a>`;
+const cell = v => typeof v==='string' && v[0]==='@' ? link(v.slice(1)) : v;
+let view = '';
+
+function piece(x){
+  if(x.p) return `<p>${x.p}</p>`;
+  if(x.ul) return `<ul>${x.ul.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  if(x.steps) return `<ol class="steps">${x.steps.map(i=>`<li><span>${i}</span></li>`).join('')}</ol>`;
+  if(x.quote) return `<p class="quote">«${esc(x.quote)}»</p>`;
+  if(x.note) return `<div class="note"><div class="nl">Подсказка</div><p>${x.note}</p></div>`;
+  if(x.warn) return `<div class="note t"><div class="nl">Важно</div><p>${x.warn}</p></div>`;
+  if(x.tree) return `<div class="tree">${x.tree}</div>`;
+  if(x.flow) return `<div class="flowline">${x.flow.map((f,i)=>`${i?'<i>→</i>':''}<span class="${i===x.flow.length-1?'acc':''}">${esc(f)}</span>`).join('')}</div>`;
+  if(x.links) return `<div class="links">${x.links.map(link).join('')}</div>`;
+  if(x.cards) return `<div class="cards">${x.cards.map(c=>`<div class="card ${c.k||''}">${c.tag?`<span class="tag ${c.tag}">${esc(c.tg)}</span>`:''}<h4>${esc(c.h)}</h4><p>${c.p}</p>${c.go?link(c.go):''}</div>`).join('')}</div>`;
+  if(x.split) return `<div class="split">${x.split.map(s=>`<div><div class="sl ${s.no?'no':''}">${esc(s.l)}</div><ul>${s.ul.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('')}</div>`;
+  if(x.table) return `<div class="tw"><table><thead><tr>${x.table.h.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${x.table.r.map(r=>`<tr>${r.map(c=>`<td>${cell(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if(x.tabs){ const ks=Object.keys(x.tabs); return `<div class="tabs" data-tabs><div class="tl" role="tablist">${ks.map((k,i)=>`<button role="tab" aria-selected="${i===0}" data-k="${i}">${esc(k)}</button>`).join('')}</div>${ks.map((k,i)=>`<div class="tp" data-p="${i}" ${i?'hidden':''}>${x.tabs[k]}</div>`).join('')}</div>`; }
+  if(x.prompt) return promptBox(x.prompt.l, x.prompt.t, '');
+  if(x.pk) return promptBox(x.l || ('Библиотека · запрос '+x.pk), P[x.pk], 't');
+  if(x.reveal) return `<div class="reveal"><button type="button" data-reveal>${esc(x.reveal.q)}</button><p class="ans" hidden>${x.reveal.a}</p></div>`;
+  return '';
+}
+const promptBox = (l,t,cls) => `<div class="prompt"><div class="ph"><span class="${cls}">${esc(l)}</span><button type="button" data-copy>Копировать</button></div><pre>${esc(t)}</pre></div>`;
+function checklist(items,key){
+  const s=store.get(key,{});
+  return `<ul class="check">${items.map((t,i)=>`<li><label><input type="checkbox" id="${key}-${i}" data-k="${key}" data-i="${i}" ${s[i]?'checked':''}><span>${esc(t)}</span></label></li>`).join('')}</ul>`;
+}
+
+function renderToc(){
+  const done=store.get('m1-done',{});
+  let h='', b='';
+  LESSONS.forEach(l=>{
+    if(l.block!==b){ b=l.block; h+=`<div class="sep">${esc(b)}</div>`; }
+    h+=`<button data-v="${l.id}" aria-current="${l.id===view}"><span class="no">${l.no}</span><span class="nm">${esc(l.title)}</span><span class="ok ${done[l.id]?'on':''}" aria-label="${done[l.id]?'пройден':'не пройден'}"></span></button>`;
+  });
+  $('#toc').innerHTML=h;
+  $('#toc').querySelectorAll('button').forEach(x=>x.onclick=()=>{ location.hash=x.dataset.v; });
+  const n=Object.values(done).filter(Boolean).length;
+  $('#mCount').textContent=`${n} из ${LESSONS.length}`;
+  $('#mBar').style.width=(n/LESSONS.length*100)+'%';
+}
+function titleHTML(t){ const m=t.match(/^(.*?)(\S+)$/); return m?esc(m[1])+'<em>'+esc(m[2])+'</em>':esc(t); }
+
+function renderLesson(l){
+  const idx=LESSONS.indexOf(l), done=store.get('m1-done',{}), open=store.get('m1-open-'+l.id,[0]);
+  const blocks=l.blocks.map((b,i)=>`<section class="blk ${open.includes(i)?'open':''}" style="--i:${i}" data-b="${i}">
+    <button class="bh" type="button" aria-expanded="${open.includes(i)}"><span class="bn">${String(i+1).padStart(2,'0')}</span><span><h3>${esc(b.h)}</h3><small>${esc(b.s)}</small></span><span class="pm" aria-hidden="true"></span></button>
+    <div class="bb">${b.c.map(piece).join('')}</div></section>`).join('');
+  const prev = idx>0?`<button class="btn" data-go="${LESSONS[idx-1].id}">← Урок ${LESSONS[idx-1].no}</button>`:'<span></span>';
+  const next = idx<LESSONS.length-1?`<button class="btn primary" data-go="${LESSONS[idx+1].id}">Урок ${LESSONS[idx+1].no} →</button>`:'<span></span>';
+  $('#main').innerHTML=`
+  <div class="lh">
+    <div class="rubrics"><span class="rubric t">Урок ${l.no}</span><span class="rubric b">${esc(l.block)}</span></div>
+    <h2>${titleHTML(l.title)}</h2>
+    <p class="can"><b>После урока вы сможете</b> ${esc(l.can)}</p>
+    <div class="need"><span>Понадобится:</span>${l.need.map(n=>`<span class="chip">${esc(n)}</span>`).join('')}</div>
+    <div class="tools"><button class="tbtn" id="openAll" type="button">Раскрыть все блоки</button><button class="tbtn" id="closeAll" type="button">Свернуть</button></div>
+  </div>
+  <div class="blocks">${blocks}</div>
+  <section class="hw"><div class="rubrics" style="margin:0"><span class="rubric t">Задание к уроку ${l.no}</span></div>
+    <h3>${l.hw.t}</h3>${checklist(l.hw.tasks,'hw-'+l.id)}
+    <p class="donebox"><b>Готово, если</b> ${esc(l.hw.done)}</p>
+    ${l.ready?`<h3>Чек-лист <em>технической готовности</em></h3><p>Заполните до понедельника 23.11 — в модуле 2 всё это понадобится.</p>${checklist(l.ready,'ready')}`:''}
+    <button class="finish ${done[l.id]?'on':''}" id="finish" type="button">${done[l.id]?'Урок пройден ✓':'Отметить урок пройденным'}</button>
+  </section>
+  <div class="pager">${prev}${next}</div>`;
+  bind(l);
+}
+function bind(l){
+  const saveOpen=()=>store.set('m1-open-'+l.id,[...document.querySelectorAll('.blk.open')].map(b=>+b.dataset.b));
+  document.querySelectorAll('.blk .bh').forEach(h=>h.onclick=()=>{ const b=h.parentElement; b.classList.toggle('open'); h.setAttribute('aria-expanded',b.classList.contains('open')); saveOpen(); });
+  $('#openAll').onclick=()=>{ document.querySelectorAll('.blk').forEach(b=>{b.classList.add('open');b.querySelector('.bh').setAttribute('aria-expanded','true');}); saveOpen(); };
+  $('#closeAll').onclick=()=>{ document.querySelectorAll('.blk').forEach(b=>{b.classList.remove('open');b.querySelector('.bh').setAttribute('aria-expanded','false');}); saveOpen(); };
+  document.querySelectorAll('[data-tabs]').forEach(box=>box.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{
+    box.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',x===t));
+    box.querySelectorAll('.tp').forEach(p=>p.hidden=p.dataset.p!==t.dataset.k);
+  }));
+  document.querySelectorAll('[data-reveal]').forEach(b=>b.onclick=()=>{ const a=b.nextElementSibling; a.hidden=!a.hidden; b.textContent=a.hidden?b.textContent.replace('Скрыть','Показать'):b.textContent.replace('Показать','Скрыть'); });
+  document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
+    const pre=b.closest('.prompt').querySelector('pre');
+    const ok=()=>{ b.textContent='Скопировано'; b.classList.add('done'); setTimeout(()=>{b.textContent='Копировать';b.classList.remove('done');},1600); };
+    const fb=()=>{ const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='Выделено — Cmd/Ctrl+C'; };
+    try{ navigator.clipboard.writeText(pre.textContent).then(ok,fb); }catch(e){ fb(); }
+  });
+  document.querySelectorAll('input[data-k]').forEach(cb=>cb.onchange=()=>{ const k=cb.dataset.k,s=store.get(k,{}); s[cb.dataset.i]=cb.checked; store.set(k,s); });
+  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ location.hash=b.dataset.go; });
+  $('#finish').onclick=()=>{ const d=store.get('m1-done',{}); d[l.id]=!d[l.id]; store.set('m1-done',d); renderToc(); const f=$('#finish'); f.classList.toggle('on',d[l.id]); f.textContent=d[l.id]?'Урок пройден ✓':'Отметить урок пройденным'; };
+}
+function route(e){
+  const h=(location.hash||'').slice(1);
+  view = LESSONS.some(l=>l.id===h) ? h : store.get('m1-view','l1');
+  if(!LESSONS.some(l=>l.id===view)) view='l1';
+  store.set('m1-view',view);
+  renderToc(); renderLesson(LESSONS.find(l=>l.id===view));
+  if(e) document.querySelector('.grid').scrollIntoView({block:'start'});
+}
+window.addEventListener('hashchange',route);
+route();
+</script>
+
+</body>
+</html>
